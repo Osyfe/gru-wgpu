@@ -3,11 +3,14 @@ name = "gru-wgpu"
 version = "0.1.0"
 edition = "2021"
 
+[features]
+
 [dependencies]
 anyhow = "1.0.79"
 winit = "0.30.5"
 wgpu = { version = "23.0.0", features = ["webgl"] }
-gru-ui = { path = "../gru-ui" }
+gru-misc = { path = "../gru-misc", features = ["math"] }
+gru-ui = { path = "../gru-ui", optional = true }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 simple_logger = "5.0.0"
@@ -18,4 +21,4 @@ console_error_panic_hook = "0.1.7"
 console_log = "1.0.0"
 wasm-bindgen = "0.2.95"
 wasm-bindgen-futures = "0.4.45"
-web-sys = { version = "0.3.67", features = ["Window", "Document", "Element", "HtmlCanvasElement", "Performance", "XmlHttpRequest", "XmlHttpRequestResponseType", "Storage"] }
+web-sys = { version = "0.3.72", features = ["Window", "Document", "Element", "HtmlCanvasElement"] }

@@ -1,33 +1,47 @@
+#![feature(let_chains)]
+
 #[cfg(target_arch = "wasm32")]
 pub use wasm_bindgen;
-
-pub use winit;
+pub use winit::window as winit_window;
 pub use wgpu;
+#[cfg(feature = "gru-ui")]
+pub use gru_ui;
 
 pub mod input;
 pub mod graphics;
+#[cfg(feature = "gru-ui")]
+pub mod ui_binding;
 
 use std::sync::Arc;
 use winit::{application::ApplicationHandler, event::{WindowEvent, StartCause}, event_loop::{EventLoop, ActiveEventLoop, EventLoopProxy}, window::Window};
 
-pub trait App
+pub trait App: Sized + 'static
 {
     const BACKENDS: wgpu::Backends;
     type Init;
-    fn init(init: Self::Init) -> Self;
-    fn frame(&mut self, ctx: &mut Context) -> bool;
-    fn deinit(self, ctx: &mut Context) -> Option<Self::Init>;
+    #[cfg(feature = "gru-ui")]
+    type UiEvent;
+    #[cfg(feature = "gru-ui")]
+    fn ui() -> gru_ui::Ui<'static, Self, Self::UiEvent>;
+    fn init(init: Self::Init, ctx: &mut Context<Self>) -> Self;
+    fn frame(&mut self, ctx: &mut Context<Self>) -> bool;
+    fn deinit(self, _: &mut Context<Self>) -> Option<Self::Init> { None }
 }
 
-#[derive(Debug)]
-pub struct Context
+pub struct Context<T: App>
 {
     pub window: Arc<Window>,
     pub input: input::Input,
     pub graphics: graphics::Graphics,
+    #[cfg(not(feature = "gru-ui"))]
+    _phantom: std::marker::PhantomData<T>,
+    #[cfg(feature = "gru-ui")]
+    pub ui: gru_ui::Ui<'static, T, T::UiEvent>,
+    #[cfg(feature = "gru-ui")]
+    pub ui_render: ui_binding::RenderData,
 }
 
-impl Context
+impl<T: App> Context<T>
 {
     async fn init(backends: wgpu::Backends, window: Window) -> Self
     {
@@ -36,9 +50,22 @@ impl Context
         let size = window.inner_size().into();
         graphics.configure(size);
         let input = input::Input::new();
+        #[cfg(feature = "gru-ui")]
+        let (ui, ui_render) = (T::ui(), ui_binding::RenderData::new(&graphics));
 
         window.set_visible(true);
-        Self { window, input, graphics }
+        Self
+        {
+            window,
+            input,
+            graphics,
+            #[cfg(not(feature = "gru-ui"))]
+            _phantom: std::marker::PhantomData,
+            #[cfg(feature = "gru-ui")]
+            ui,
+            #[cfg(feature = "gru-ui")]
+            ui_render,
+        }
     }
 }
 
@@ -51,21 +78,21 @@ enum AppState<T: App>
 
 struct AppHandler<T: App>
 {
-    ctx: Option<Context>,
-    event_loop_proxy: EventLoopProxy<Context>,
+    ctx: Option<Context<T>>,
+    event_loop_proxy: EventLoopProxy<Context<T>>,
     app: AppState<T>,
 }
 
 impl<T: App> AppHandler<T>
 {
-    fn new(init: T::Init, event_loop: &EventLoop<Context>) -> Self
+    fn new(init: T::Init, event_loop: &EventLoop<Context<T>>) -> Self
     {
         let event_loop_proxy = event_loop.create_proxy();
         Self { ctx: None, event_loop_proxy, app: AppState::Init(Some(init)) }
     }
 }
 
-impl<T: App> ApplicationHandler<Context> for AppHandler<T>
+impl<T: App> ApplicationHandler<Context<T>> for AppHandler<T>
 {
     fn new_events(&mut self, event_loop: &ActiveEventLoop, cause: StartCause)
     {
@@ -77,7 +104,7 @@ impl<T: App> ApplicationHandler<Context> for AppHandler<T>
             let future = async move
             {
                 let ctx = Context::init(T::BACKENDS, window).await;
-                proxy.send_event(ctx).unwrap();
+                proxy.send_event(ctx).ok().unwrap();
             };
             #[cfg(not(target_arch = "wasm32"))]
             pollster::block_on(future);
@@ -88,13 +115,13 @@ impl<T: App> ApplicationHandler<Context> for AppHandler<T>
 
     fn resumed(&mut self, _: &winit::event_loop::ActiveEventLoop) {}
 
-    fn user_event(&mut self, _: &ActiveEventLoop, event: Context)
+    fn user_event(&mut self, _: &ActiveEventLoop, mut ctx: Context<T>)
     {
         let AppState::Init(init) = &mut self.app else { unreachable!() };
         let init = init.take().unwrap();
-        let app = T::init(init);
+        let app = T::init(init, &mut ctx);
         self.app = AppState::App(app);
-        self.ctx = Some(event);
+        self.ctx = Some(ctx);
     }
 
     fn device_event(&mut self, _: &ActiveEventLoop, _: winit::event::DeviceId, event: winit::event::DeviceEvent)
@@ -117,7 +144,7 @@ impl<T: App> ApplicationHandler<Context> for AppHandler<T>
                     let height = new_size.height.max(1);
                     ctx.graphics.configure((width, height));
                 },
-                WindowEvent::RedrawRequested =>
+                WindowEvent::RedrawRequested => //frame
                 {
                     match &mut self.app
                     {

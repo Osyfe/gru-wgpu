@@ -2,7 +2,6 @@ use std::sync::Arc;
 use anyhow::Result;
 use winit::window::Window;
 
-#[derive(Debug)]
 pub struct Graphics
 {
     #[allow(unused)]
@@ -89,6 +88,8 @@ impl Graphics
     }
 
     pub fn backend(&self) -> wgpu::Backend { self.backend }
+    pub fn view_format(&self) -> wgpu::TextureFormat { self.view_format }
+    pub fn surface_size(&self) -> Option<(u32, u32)> { self.surface_size }
 
     pub fn current_surface(&mut self) -> Result<Option<(wgpu::SurfaceTexture, wgpu::TextureView)>>
     {
