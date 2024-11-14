@@ -1,8 +1,8 @@
 use gru_misc::math::Vec2;
 use winit::{window::{Window, CursorGrabMode}, event::{DeviceEvent, WindowEvent}, dpi::PhysicalPosition};
-#[cfg(feature = "gru-ui")]
+#[cfg(feature = "ui")]
 use gru_ui::event::{HardwareEvent, MouseButton, Key};
-#[cfg(feature = "gru-ui")]
+#[cfg(feature = "ui")]
 use winit::{event::{ElementState, MouseButton as WinitMouseButton, MouseScrollDelta}, keyboard::{PhysicalKey, KeyCode}};
 
 pub enum RawEvent
@@ -15,9 +15,9 @@ pub struct Input
 {
     cam_mode: bool,
     pub pointer_pos: Vec2,
-    #[cfg(not(feature = "gru-ui"))]
+    #[cfg(not(feature = "ui"))]
     events: Vec<RawEvent>,
-    #[cfg(feature = "gru-ui")]
+    #[cfg(feature = "ui")]
     events: Vec<HardwareEvent>,
 }
 
@@ -35,7 +35,7 @@ impl Input
 
     pub(crate) fn event(&mut self, event: RawEvent)
     {
-        #[cfg(not(feature = "gru-ui"))]
+        #[cfg(not(feature = "ui"))]
         {
             if let RawEvent::Window(WindowEvent::CursorMoved { position, .. }) = &event && !self.cam_mode
             {
@@ -43,7 +43,7 @@ impl Input
             }
             self.events.push(event);
         }
-        #[cfg(feature = "gru-ui")]
+        #[cfg(feature = "ui")]
         convert(self.cam_mode, &mut self.pointer_pos, &event, |event| self.events.push(event));
     }
 
@@ -52,13 +52,13 @@ impl Input
         self.events.clear();
     }
 
-    #[cfg(not(feature = "gru-ui"))]
+    #[cfg(not(feature = "ui"))]
     pub fn events(&self) -> &[RawEvent]
     {
         &self.events
     }
 
-    #[cfg(feature = "gru-ui")]
+    #[cfg(feature = "ui")]
     pub fn events(&self) -> &[HardwareEvent]
     {
         &self.events
@@ -80,7 +80,7 @@ impl Input
     }
 }
 
-#[cfg(feature = "gru-ui")]
+#[cfg(feature = "ui")]
 fn convert(cam_mode: bool, pointer_pos: &mut Vec2, raw_event: &RawEvent, mut accept: impl FnMut(HardwareEvent))
 {
     match raw_event
