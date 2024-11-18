@@ -51,8 +51,6 @@ pub struct Context<T: App>
     pub audio: Option<(rodio::OutputStream, rodio::OutputStreamHandle)>,
     #[cfg(feature = "storage")]
     pub storage: storage::Storage,
-    #[cfg(feature = "file")]
-    pub file: file::Loader,
 }
 
 impl<T: App> Context<T>
@@ -83,8 +81,6 @@ impl<T: App> Context<T>
             audio: None,
             #[cfg(feature = "storage")]
             storage: storage::Storage::load(),
-            #[cfg(feature = "file")]
-            file: file::Loader::new(),
         }
     }
 

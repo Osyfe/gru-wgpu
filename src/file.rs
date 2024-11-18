@@ -43,7 +43,7 @@ pub struct Loader
 
 impl Loader
 {
-    pub(crate) fn new() -> Self
+    pub fn new() -> Self
     {
         Self
         {
