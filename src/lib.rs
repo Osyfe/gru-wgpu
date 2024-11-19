@@ -26,6 +26,8 @@ use winit::{application::ApplicationHandler, event::{WindowEvent, StartCause}, e
 pub trait App: Sized + 'static
 {
     const BACKENDS: wgpu::Backends;
+    #[cfg(feature = "ui")]
+    const DEPTH_FORMAT: Option<wgpu::TextureFormat>;
     type Init;
     #[cfg(feature = "ui")]
     type UiEvent;
@@ -63,7 +65,7 @@ impl<T: App> Context<T>
         graphics.configure(size);
         let input = input::Input::new();
         #[cfg(feature = "ui")]
-        let (ui, ui_render) = (T::ui(), ui_render::RenderData::new(&graphics));
+        let (ui, ui_render) = (T::ui(), ui_render::RenderData::new(&graphics, T::DEPTH_FORMAT));
 
         window.set_visible(true);
         Self

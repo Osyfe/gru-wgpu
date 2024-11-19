@@ -87,3 +87,17 @@ impl Loader
         }
     }
 }
+
+impl std::future::Future for File
+{
+    type Output = anyhow::Result<Vec<u8>>;
+
+    fn poll(mut self: std::pin::Pin<&mut Self>, _: &mut std::task::Context<'_>) -> std::task::Poll<Self::Output>
+    {
+        match self.query()
+        {
+            Some(val) => std::task::Poll::Ready(val),
+            None => std::task::Poll::Pending
+        }
+    }
+}

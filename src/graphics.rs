@@ -11,8 +11,8 @@ pub struct Graphics
     surface_format: wgpu::TextureFormat,
     surface_size: Option<(u32, u32)>,
     view_format: wgpu::TextureFormat,
-    pub device: wgpu::Device,
-    pub queue: wgpu::Queue,
+    pub device: Arc<wgpu::Device>,
+    pub queue: Arc<wgpu::Queue>,
 }
 
 impl Graphics
@@ -64,6 +64,7 @@ impl Graphics
             Ok(ok) => ok,
             Err(err) => anyhow::bail!("{err:?}"), //err not Send+Sync on wasm -> no ? operator
         };
+        let (device, queue) = (Arc::new(device), Arc::new(queue));
 
         Ok(Self { instance, backend, surface, surface_format, surface_size, view_format, device, queue })
     }

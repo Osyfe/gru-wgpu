@@ -5,3 +5,4 @@ x file loading
 x gloo-storage
 x rodio
 x time
+- mipmaps: https://github.com/gfx-rs/wgpu/blob/trunk/examples/src/mipmap/mod.rs

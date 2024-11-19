@@ -31,7 +31,37 @@ pub struct RenderData
 
 impl RenderData
 {
-    fn create_pipeline(device: &wgpu::Device, view_format: wgpu::TextureFormat) -> (wgpu::BindGroupLayout, wgpu::RenderPipeline)
+    fn depth_stencil(format: wgpu::TextureFormat) -> wgpu::DepthStencilState
+    {
+        wgpu::DepthStencilState
+        {
+            format,
+            depth_write_enabled: true,
+            depth_compare: wgpu::CompareFunction::LessEqual,
+            stencil: wgpu::StencilState
+            {
+                front: wgpu::StencilFaceState
+                {
+                    compare: wgpu::CompareFunction::Never,
+                    fail_op: wgpu::StencilOperation::Keep,
+                    depth_fail_op: wgpu::StencilOperation::Keep,
+                    pass_op: wgpu::StencilOperation::Keep
+                },
+                back: wgpu::StencilFaceState
+                {
+                    compare: wgpu::CompareFunction::Never,
+                    fail_op: wgpu::StencilOperation::Keep,
+                    depth_fail_op: wgpu::StencilOperation::Keep,
+                    pass_op: wgpu::StencilOperation::Keep
+                },
+                read_mask: 0,
+                write_mask: 0
+            },
+            bias: wgpu::DepthBiasState { constant: 0, slope_scale: 0.0, clamp: 0.0 }
+        }
+    }
+    
+    fn create_pipeline(device: &wgpu::Device, view_format: wgpu::TextureFormat, depth_format: Option<wgpu::TextureFormat>) -> (wgpu::BindGroupLayout, wgpu::RenderPipeline)
     {
         let bind_group_layout_descriptor_descr = wgpu::BindGroupLayoutDescriptor
         {
@@ -118,7 +148,7 @@ impl RenderData
                 polygon_mode: wgpu::PolygonMode::Fill,
                 conservative: false,
             },
-            depth_stencil: None,
+            depth_stencil: depth_format.map(Self::depth_stencil),
             multisample: wgpu::MultisampleState
             {
                 count: 1,
@@ -242,9 +272,9 @@ impl RenderData
         device.create_bind_group(&bind_group_descr)
     }
 
-    pub(crate) fn new(graphics: &Graphics) -> Self
+    pub(crate) fn new(graphics: &Graphics, depth_format: Option<wgpu::TextureFormat>) -> Self
     {
-        let (bind_group_layout, render_pipeline) = Self::create_pipeline(&graphics.device, graphics.view_format());
+        let (bind_group_layout, render_pipeline) = Self::create_pipeline(&graphics.device, graphics.view_format(), depth_format);
         let (vertex_buf, index_buf) = Self::create_buffers(&graphics.device, 1, 1);
         let (len_vertices, len_indices, num_indices) = (0, 0, 0);
         let glyphs_version = None;
