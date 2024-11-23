@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [features]
+dx = ["wgpu/dx12"]
 all = ["ui", "audio", "storage", "file"]
 ui = ["dep:gru-ui"]
 audio = ["dep:rodio"]
@@ -13,7 +14,7 @@ file = ["dep:flume", "web-sys/XmlHttpRequest", "web-sys/XmlHttpRequestResponseTy
 [dependencies]
 anyhow = "1.0.79"
 winit = "0.30.5"
-wgpu = { version = "23.0.0", features = ["webgl"] }
+wgpu = { version = "23.0.0", default-features = false, features = ["wgsl", "webgl", "webgpu", "metal"] }
 gru-misc = { path = "../gru-misc", features = ["math"] }
 gru-ui = { path = "../gru-ui", optional = true }
 rodio = { version = "0.20.1", default-features = false, features = ["wasm-bindgen", "vorbis"], optional = true }
