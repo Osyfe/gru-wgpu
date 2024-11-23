@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [features]
-dx = ["wgpu/dx12"]
+dx12 = ["wgpu/dx12"]
 all = ["ui", "audio", "storage", "file"]
 ui = ["dep:gru-ui"]
 audio = ["dep:rodio"]
