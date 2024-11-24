@@ -343,6 +343,8 @@ impl RenderData
             graphics.queue.write_buffer(&self.index_buf, 0, index_bytes);
             self.len_indices = index_bytes.len() as u64;
             self.num_indices = data.indices.len() as u32;
+            //trigger gpu upload
+            graphics.queue.submit([]);
         }
         //update glyphs if new
         if self.glyphs_version != Some(data.font_version)
