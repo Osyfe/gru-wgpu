@@ -18,10 +18,10 @@ pub struct RenderData
     bind_group_layout: wgpu::BindGroupLayout,
     render_pipeline: wgpu::RenderPipeline,
     vertex_buf: wgpu::Buffer,
-    len_vertices: u64,
     index_buf: wgpu::Buffer,
-    len_indices: u64,
-    num_indices: u32,
+    len_vertices: u64, //Vertex count
+    len_indices: u64, //u16 count
+    num_indices: u32, //index count to render
     glyphs_version: Option<u64>,
     glyphs: wgpu::Texture,
     glyphs_view: wgpu::TextureView,
@@ -276,7 +276,7 @@ impl RenderData
     {
         let (bind_group_layout, render_pipeline) = Self::create_pipeline(&graphics.device, graphics.view_format(), depth_format);
         let (vertex_buf, index_buf) = Self::create_buffers(&graphics.device, 1, 1);
-        let (len_vertices, len_indices, num_indices) = (0, 0, 0);
+        let (len_vertices, len_indices, num_indices) = (1, 1, 0);
         let glyphs_version = None;
         let (glyphs, glyphs_view) = Self::create_glyphs(graphics, None);
         let sampler_descr = wgpu::SamplerDescriptor
@@ -321,11 +321,13 @@ impl RenderData
                 vertices.push(vertex);
             }
             //create new buffer if too small
-            if vertices.len() as u64 > self.vertex_buf.size() || data.indices.len() as u64 > self.index_buf.size()
+            if vertices.len() as u64 > self.len_vertices || data.indices.len() as u64 > self.len_indices
             {
                 let (vertex_buf, index_buf) = Self::create_buffers(&graphics.device, vertices.len() as u64, data.indices.len() as u64);
                 self.vertex_buf = vertex_buf;
                 self.index_buf = index_buf;
+                self.len_vertices = vertices.len() as u64;
+                self.len_indices = data.indices.len() as u64;
             }
             //fill buffer
             let vertex_bytes = unsafe
@@ -334,14 +336,13 @@ impl RenderData
                 std::slice::from_raw_parts(ptr, vertices.len() * std::mem::size_of::<Vertex>())
             };
             graphics.queue.write_buffer(&self.vertex_buf, 0, vertex_bytes);
-            self.len_vertices = vertex_bytes.len() as u64;
+            
             let index_bytes = unsafe
             {
                 let ptr = data.indices.as_ptr() as *const u8;
                 std::slice::from_raw_parts(ptr, data.indices.len() * std::mem::size_of::<u16>())
             };
             graphics.queue.write_buffer(&self.index_buf, 0, index_bytes);
-            self.len_indices = index_bytes.len() as u64;
             self.num_indices = data.indices.len() as u32;
             //trigger gpu upload
             graphics.queue.submit([]);
@@ -365,8 +366,8 @@ impl RenderData
         {
             render_pass.set_pipeline(&self.render_pipeline);
             render_pass.set_bind_group(0, &self.bind_group, &[]);
-            render_pass.set_vertex_buffer(0, self.vertex_buf.slice(0..self.len_vertices));
-            render_pass.set_index_buffer(self.index_buf.slice(0..self.len_indices), wgpu::IndexFormat::Uint16);
+            render_pass.set_vertex_buffer(0, self.vertex_buf.slice(..));
+            render_pass.set_index_buffer(self.index_buf.slice(..), wgpu::IndexFormat::Uint16);
             render_pass.draw_indexed(0..self.num_indices, 0, 0..1);
         }
     }
