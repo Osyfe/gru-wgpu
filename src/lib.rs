@@ -154,7 +154,7 @@ impl<T: App> ApplicationHandler<Context<T>> for AppHandler<T>
         }
     }
 
-    fn window_event(&mut self, event_loop: &winit::event_loop::ActiveEventLoop, _: winit::window::WindowId, event: WindowEvent)
+    fn window_event(&mut self, event_loop: &ActiveEventLoop, _: winit::window::WindowId, event: WindowEvent)
     {
         if let Some(ctx) = self.ctx.as_mut()
         {
