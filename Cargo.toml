@@ -4,7 +4,13 @@ version = "0.1.0"
 edition = "2024"
 
 [features]
+webgpu = ["wgpu/webgpu"]
+vulkan = ["wgpu/vulkan"]
 dx12 = ["wgpu/dx12"]
+metal = ["wgpu/metal"]
+gles = ["wgpu/gles"]
+webgl = ["wgpu/webgl"]
+
 all = ["ui", "audio", "storage", "file"]
 ui = ["dep:gru-ui"]
 audio = ["dep:rodio"]
@@ -12,9 +18,9 @@ storage = ["dep:ahash", "dep:bincode", "web-sys/Storage"]
 file = ["dep:flume", "web-sys/XmlHttpRequest", "web-sys/XmlHttpRequestResponseType", "dep:js-sys"]
 
 [dependencies]
-anyhow = "1.0.79"
-winit = "0.30.5"
-wgpu = { version = "23.0.0", default-features = false, features = ["wgsl", "webgl", "webgpu", "metal"] }
+anyhow = "1.0.97"
+winit = "0.30.9"
+wgpu = { version = "25.0.0", default-features = false, features = ["wgsl"] }
 gru-misc = { path = "../gru-misc", features = ["math"] }
 gru-ui = { path = "../gru-ui", optional = true }
 rodio = { version = "0.20.1", default-features = false, features = ["wasm-bindgen", "vorbis"], optional = true }
@@ -23,13 +29,13 @@ rodio = { version = "0.20.1", default-features = false, features = ["wasm-bindge
 simple_logger = "5.0.0"
 pollster = "0.4.0"
 ahash = { version = "0.8.11", default-features = false, features = ["no-rng", "std", "serde"], optional = true }
-bincode = { version = "1.3.3", optional = true }
+bincode = { version = "2.0.1", features = ["std", "serde"], optional = true }
 flume = { version = "0.11.1", default-features = false, optional = true }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 console_error_panic_hook = "0.1.7"
 console_log = "1.0.0"
 wasm-bindgen = "0.2.97"
-wasm-bindgen-futures = "0.4.45"
-web-sys = { version = "0.3.72", features = ["Window", "Document", "Element", "HtmlCanvasElement", "Performance"] }
-js-sys = { version = "0.3.72", optional = true }
+wasm-bindgen-futures = "0.4.50"
+web-sys = { version = "0.3.77", features = ["Window", "Document", "Element", "HtmlCanvasElement", "Performance"] }
+js-sys = { version = "0.3.77", optional = true }

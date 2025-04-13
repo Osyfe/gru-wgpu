@@ -16,7 +16,7 @@ impl Storage
         Self
         {
             #[cfg(not(target_arch = "wasm32"))]
-            data: std::fs::read(PATH).map(|contents| bincode::deserialize(&contents).unwrap()).unwrap_or_else(|_| ahash::AHashMap::new()),
+            data: std::fs::read(PATH).map(|contents| bincode::serde::decode_from_slice(&contents, bincode::config::standard()).unwrap().0).unwrap_or_else(|_| ahash::AHashMap::new()),
             #[cfg(target_arch = "wasm32")]
             data: web_sys::window().unwrap().local_storage().unwrap().unwrap(),
         }
@@ -66,6 +66,6 @@ impl Drop for Storage
 {
     fn drop(&mut self)
     {
-        std::fs::write(PATH, bincode::serialize(&self.data).unwrap()).unwrap();
+        std::fs::write(PATH, bincode::serde::encode_to_vec(&self.data, bincode::config::standard()).unwrap()).unwrap();
     }
 }

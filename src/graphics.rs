@@ -23,10 +23,29 @@ impl Graphics
         {
             backends,
             flags: wgpu::InstanceFlags::from_build_config(),
-            dx12_shader_compiler: wgpu::Dx12Compiler::Dxc { dxil_path: None, dxc_path: None },
-            gles_minor_version: wgpu::Gles3MinorVersion::Automatic,
+            backend_options: wgpu::BackendOptions
+            {
+                gl: wgpu::GlBackendOptions
+                {
+                    gles_minor_version: wgpu::Gles3MinorVersion::Automatic,
+                    fence_behavior: wgpu::GlFenceBehavior::Normal,
+                },
+                dx12: wgpu::Dx12BackendOptions
+                {
+                    shader_compiler: wgpu::Dx12Compiler::DynamicDxc
+                    {
+                        dxc_path: String::from("dxcompiler.dll"),
+                        dxil_path: String::from("dxil.dll"),
+                        max_shader_model: wgpu::DxcShaderModel::V6_7,
+                    },
+                },
+                noop: wgpu::NoopBackendOptions
+                {
+                    enable: false,
+                },
+            },
         };
-        let instance = wgpu::Instance::new(instance_descr);
+        let instance = wgpu::Instance::new(&instance_descr);
 
         let surface = instance.create_surface(window)?;
         let surface_size = None;
@@ -39,8 +58,8 @@ impl Graphics
         };
         let adapter = match instance.request_adapter(&adapter_opt).await
         {
-            Some(adapter) => adapter,
-            None => anyhow::bail!("No compatible GPU found."),
+            Ok(adapter) => adapter,
+            Err(err) => anyhow::bail!("{err}"), //err not Send+Sync on wasm -> no ? operator
         };
         let backend = adapter.get_info().backend;
 
@@ -58,11 +77,12 @@ impl Graphics
             required_features: wgpu::Features::empty(),
             required_limits: wgpu::Limits::downlevel_webgl2_defaults(),
             memory_hints: wgpu::MemoryHints::Performance,
+            trace: wgpu::Trace::Off,
         };
-        let (device, queue) = match adapter.request_device(&device_descr, None).await
+        let (device, queue) = match adapter.request_device(&device_descr).await
         {
             Ok(ok) => ok,
-            Err(err) => anyhow::bail!("{err:?}"), //err not Send+Sync on wasm -> no ? operator
+            Err(err) => anyhow::bail!("{err}"), //err not Send+Sync on wasm -> no ? operator
         };
         let (device, queue) = (Arc::new(device), Arc::new(queue));
 
@@ -111,6 +131,7 @@ impl Graphics
             label: None,
             format: Some(self.view_format),
             dimension: Some(wgpu::TextureViewDimension::D2),
+            usage: None,
             aspect: wgpu::TextureAspect::All,
             base_mip_level: 0,
             mip_level_count: None,
