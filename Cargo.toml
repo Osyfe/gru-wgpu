@@ -21,8 +21,8 @@ file = ["dep:flume", "web-sys/XmlHttpRequest", "web-sys/XmlHttpRequestResponseTy
 anyhow = "1.0.97"
 winit = "0.30.9"
 wgpu = { version = "25.0.0", default-features = false, features = ["wgsl"] }
-gru-misc = { git = "https://github.com/Osyfe/gru-misc.git", features = ["math"] }
-gru-ui = { git = "https://github.com/Osyfe/gru-ui.git", optional = true }
+gru-misc = { git = "https://github.com/Osyfe/gru-misc.git", branch = "release", features = ["math"] }
+gru-ui = { git = "https://github.com/Osyfe/gru-ui.git", branch = "release", optional = true }
 rodio = { version = "0.20.1", default-features = false, features = ["wasm-bindgen", "vorbis"], optional = true }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
