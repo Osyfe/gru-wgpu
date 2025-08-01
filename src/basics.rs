@@ -5,9 +5,9 @@ pub fn init_logging()
     #[cfg(not(target_arch = "wasm32"))]
     {
         #[cfg(target_os = "linux")]
-        simple_logger::SimpleLogger::new().with_utc_timestamps().init().unwrap();
+        simple_logger::SimpleLogger::new().with_utc_timestamps().env().init().unwrap();
         #[cfg(not(target_os = "linux"))]
-        simple_logger::SimpleLogger::new().with_local_timestamps().init().unwrap();
+        simple_logger::SimpleLogger::new().with_local_timestamps().env().init().unwrap();
     }
     #[cfg(target_arch = "wasm32")]
     {
