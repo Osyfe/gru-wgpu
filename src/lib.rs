@@ -21,7 +21,7 @@ pub mod storage;
 pub mod file;
 
 use std::sync::Arc;
-use winit::{application::ApplicationHandler, event::{WindowEvent, StartCause}, event_loop::{EventLoop, ActiveEventLoop, EventLoopProxy}, window::Window};
+use winit::{application::ApplicationHandler, event::{WindowEvent, StartCause}, event_loop::{EventLoopBuilder, ActiveEventLoop, EventLoopProxy}, window::Window};
 
 pub trait App: Sized + 'static
 {
@@ -209,7 +209,7 @@ pub fn run<T: App>(init: T::Init)
         EventLoopBuilder::new().with_user_event().with_x11().build().unwrap()
     };
     #[cfg(not(target_os = "linux"))]
-    let mut event_loop = EventLoop::new().with_user_event().unwrap();
+    let mut event_loop = EventLoopBuilder::new().with_user_event().build().unwrap();
     
     let mut app: AppHandler<T> = AppHandler::new(init, &event_loop);
     event_loop.run_app(&mut app).unwrap();
