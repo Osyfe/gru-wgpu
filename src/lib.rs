@@ -201,7 +201,16 @@ impl<T: App> ApplicationHandler<Context<T>> for AppHandler<T>
 pub fn run<T: App>(init: T::Init)
 {
     basics::init_logging();
-    let event_loop = EventLoop::with_user_event().build().unwrap();
+    
+    #[cfg(target_os = "linux")]
+    let mut event_loop =
+    {
+        use winit::platform::x11::EventLoopBuilderExtX11;
+        event_loop::EventLoopBuilder::new().with_user_event().with_x11().build().unwrap()
+    };
+    #[cfg(not(target_os = "linux"))]
+    let mut event_loop = event_loop::EventLoop::new().with_user_event().unwrap();
+    
     let mut app: AppHandler<T> = AppHandler::new(init, &event_loop);
     event_loop.run_app(&mut app).unwrap();
 }
