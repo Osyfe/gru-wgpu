@@ -19,7 +19,7 @@ file = ["dep:flume", "web-sys/XmlHttpRequest", "web-sys/XmlHttpRequestResponseTy
 
 [dependencies]
 anyhow = "1.0.97"
-winit = "0.30.9"
+winit = { version = "0.30.9", default-features = false, features = ["x11", "rwh_06"] }
 wgpu = { version = "25.0.0", default-features = false, features = ["wgsl"] }
 gru-misc = { git = "https://github.com/Osyfe/gru-misc.git", branch = "release", features = ["math"] }
 gru-ui = { git = "https://github.com/Osyfe/gru-ui.git", branch = "release", optional = true }
