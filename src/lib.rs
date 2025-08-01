@@ -206,10 +206,10 @@ pub fn run<T: App>(init: T::Init)
     let mut event_loop =
     {
         use winit::platform::x11::EventLoopBuilderExtX11;
-        event_loop::EventLoopBuilder::new().with_user_event().with_x11().build().unwrap()
+        EventLoopBuilder::new().with_user_event().with_x11().build().unwrap()
     };
     #[cfg(not(target_os = "linux"))]
-    let mut event_loop = event_loop::EventLoop::new().with_user_event().unwrap();
+    let mut event_loop = EventLoop::new().with_user_event().unwrap();
     
     let mut app: AppHandler<T> = AppHandler::new(init, &event_loop);
     event_loop.run_app(&mut app).unwrap();
