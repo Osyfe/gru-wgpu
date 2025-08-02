@@ -1,6 +1,6 @@
 use std::sync::Arc;
-use anyhow::Result;
 use winit::window::Window;
+use crate::{Error, Result};
 
 pub struct Graphics
 {
@@ -23,6 +23,11 @@ impl Graphics
         {
             backends,
             flags: wgpu::InstanceFlags::from_build_config(),
+            memory_budget_thresholds: wgpu::MemoryBudgetThresholds
+            {
+                for_resource_creation: None,
+                for_device_loss: None,
+            },
             backend_options: wgpu::BackendOptions
             {
                 gl: wgpu::GlBackendOptions
@@ -32,12 +37,7 @@ impl Graphics
                 },
                 dx12: wgpu::Dx12BackendOptions
                 {
-                    shader_compiler: wgpu::Dx12Compiler::DynamicDxc
-                    {
-                        dxc_path: String::from("dxcompiler.dll"),
-                        dxil_path: String::from("dxil.dll"),
-                        max_shader_model: wgpu::DxcShaderModel::V6_7,
-                    },
+                    shader_compiler: wgpu::Dx12Compiler::StaticDxc,
                 },
                 noop: wgpu::NoopBackendOptions
                 {
@@ -59,7 +59,7 @@ impl Graphics
         let adapter = match instance.request_adapter(&adapter_opt).await
         {
             Ok(adapter) => adapter,
-            Err(err) => anyhow::bail!("{err}"), //err not Send+Sync on wasm -> no ? operator
+            Err(err) => return Err(Error::Adapter(err)), //err not Send+Sync on wasm -> no ? operator
         };
         let backend = adapter.get_info().backend;
 
@@ -82,7 +82,7 @@ impl Graphics
         let (device, queue) = match adapter.request_device(&device_descr).await
         {
             Ok(ok) => ok,
-            Err(err) => anyhow::bail!("{err}"), //err not Send+Sync on wasm -> no ? operator
+            Err(err) => return Err(Error::Device(err)), //err not Send+Sync on wasm -> no ? operator
         };
         let (device, queue) = (Arc::new(device), Arc::new(queue));
 
@@ -124,7 +124,7 @@ impl Graphics
                 self.configure(size);
                 return Ok(None);
             },
-            Err(err) => anyhow::bail!("{err:?}"),
+            Err(err) => return Err(Error::Surface(err)),
         };
         let view_descr = wgpu::TextureViewDescriptor
         {

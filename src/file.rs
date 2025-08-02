@@ -1,20 +1,23 @@
+use std::{fs, thread, pin::Pin, task::{self, Poll}, future::Future};
+use crate::{Error, Result};
+
 pub struct File
 {
     #[cfg(not(target_arch = "wasm32"))]
-    recv: flume::Receiver<anyhow::Result<Vec<u8>>>,
+    recv: flume::Receiver<Result<Vec<u8>>>,
     #[cfg(target_arch = "wasm32")]
     request: (web_sys::XmlHttpRequest, bool),
 }
 
 impl File
 {
-    pub fn query(&mut self) -> Option<anyhow::Result<Vec<u8>>>
+    pub fn query(&mut self) -> Option<Result<Vec<u8>>>
     {
         #[cfg(not(target_arch = "wasm32"))]
         return match self.recv.try_recv()
         {
             Ok(data) => Some(data),
-            Err(flume::TryRecvError::Disconnected) => Some(Err(anyhow::anyhow!("Loader thread cancelled"))),
+            Err(flume::TryRecvError::Disconnected) => Some(Err(Error::Loader("Loader thread cancelled"))),
             Err(flume::TryRecvError::Empty) => None,
         };
 
@@ -29,7 +32,7 @@ impl File
                 Some(Ok(js_sys::Uint8Array::new_with_byte_offset(&self.request.0.response().unwrap(), 0).to_vec()))
             } else
             {
-                Some(Err(anyhow::anyhow!("Loading Status not OK")))
+                Some(Err(Error::Loader("Loading Status not OK")))
             }
         }
     }
@@ -38,7 +41,7 @@ impl File
 pub struct Loader
 {
     #[cfg(not(target_arch = "wasm32"))]
-    thread: flume::Sender<(String, flume::Sender<anyhow::Result<Vec<u8>>>)>,
+    thread: flume::Sender<(String, flume::Sender<Result<Vec<u8>>>)>,
 }
 
 impl Loader
@@ -51,11 +54,11 @@ impl Loader
             thread:
             {
                 let (send, recv) = flume::unbounded::<(_, flume::Sender<_>)>();
-                std::thread::spawn(move ||
+                thread::spawn(move ||
                 {
                     for (path, data_send) in recv
                     {
-                        let data = std::fs::read(path).map_err(|err| anyhow::anyhow!("{err:?}"));
+                        let data = fs::read(path).map_err(Error::Io);
                         data_send.send(data).unwrap();
                     }
                 });
@@ -88,16 +91,16 @@ impl Loader
     }
 }
 
-impl std::future::Future for File
+impl Future for File
 {
-    type Output = anyhow::Result<Vec<u8>>;
+    type Output = Result<Vec<u8>>;
 
-    fn poll(mut self: std::pin::Pin<&mut Self>, _: &mut std::task::Context<'_>) -> std::task::Poll<Self::Output>
+    fn poll(mut self: Pin<&mut Self>, _: &mut task::Context<'_>) -> Poll<Self::Output>
     {
         match self.query()
         {
-            Some(val) => std::task::Poll::Ready(val),
-            None => std::task::Poll::Pending
+            Some(val) => Poll::Ready(val),
+            None => Poll::Pending
         }
     }
 }

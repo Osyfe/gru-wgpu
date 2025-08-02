@@ -23,6 +23,27 @@ pub mod file;
 use std::sync::Arc;
 use winit::{application::ApplicationHandler, event::{WindowEvent, StartCause}, event_loop::{EventLoop, ActiveEventLoop, EventLoopProxy}, window::Window};
 
+#[derive(thiserror::Error, Debug)]
+pub enum Error
+{
+    #[cfg(feature = "file")]
+    #[error("fs")]
+    Io(#[from] std::io::Error),
+    #[cfg(feature = "file")]
+    #[error("loader")]
+    Loader(&'static str),
+    #[error("creatae surface")]
+    CreateSurface(#[from] wgpu::CreateSurfaceError),
+    #[error("surface")]
+    Surface(#[from] wgpu::SurfaceError),
+    #[error("adapter")]
+    Adapter(#[from] wgpu::RequestAdapterError),
+    #[error("device")]
+    Device(#[from] wgpu::RequestDeviceError),
+}
+
+pub type Result<T> = std::result::Result<T, Error>;
+
 pub trait App: Sized + 'static
 {
     const BACKENDS: wgpu::Backends;
@@ -50,7 +71,7 @@ pub struct Context<T: App>
     #[cfg(feature = "ui")]
     pub ui_render: ui_render::RenderData,
     #[cfg(feature = "audio")]
-    pub audio: Option<(rodio::OutputStream, rodio::OutputStreamHandle)>,
+    pub audio: Option<rodio::OutputStream>,
     #[cfg(feature = "storage")]
     pub storage: storage::Storage,
 }
@@ -87,7 +108,7 @@ impl<T: App> Context<T>
     }
 
     #[cfg(feature = "audio")]
-    pub fn audio(&self) -> Option<&rodio::OutputStreamHandle> { self.audio.as_ref().map(|audio| &audio.1) }
+    pub fn audio(&self) -> Option<&rodio::OutputStream> { self.audio.as_ref() }
 }
 
 enum AppState<T: App>
@@ -161,7 +182,7 @@ impl<T: App> ApplicationHandler<Context<T>> for AppHandler<T>
             #[cfg(feature = "audio")]
             if ctx.audio.is_none() && matches!(event, WindowEvent::MouseInput { .. })
             {
-                ctx.audio = Some(rodio::OutputStream::try_default().unwrap());
+                ctx.audio = Some(rodio::OutputStreamBuilder::open_default_stream().unwrap());
             }
             match event
             {
@@ -209,8 +230,8 @@ pub fn run<T: App>(init: T::Init)
         EventLoop::with_user_event().with_x11().build().unwrap()
     };
     #[cfg(not(target_os = "linux"))]
-    let mut event_loop = EventLoop::with_user_event().build().unwrap();
-    
+    let event_loop = EventLoop::with_user_event().build().unwrap();
+
     let mut app: AppHandler<T> = AppHandler::new(init, &event_loop);
     event_loop.run_app(&mut app).unwrap();
 }
