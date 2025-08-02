@@ -6,7 +6,7 @@ edition = "2024"
 [features]
 webgpu = ["wgpu/webgpu"]
 vulkan = ["wgpu/vulkan"]
-dx12 = ["wgpu/dx12"]
+dx12 = ["wgpu/dx12", "wgpu/static-dxc"]
 metal = ["wgpu/metal"]
 gles = ["wgpu/gles"]
 webgl = ["wgpu/webgl"]
@@ -18,17 +18,17 @@ storage = ["dep:ahash", "dep:bincode", "web-sys/Storage"]
 file = ["dep:flume", "web-sys/XmlHttpRequest", "web-sys/XmlHttpRequestResponseType", "dep:js-sys"]
 
 [dependencies]
-anyhow = "1.0.97"
-winit = "0.30.9"
-wgpu = { version = "25.0.0", default-features = false, features = ["wgsl"] }
+thiserror = "2.0.12"
+winit = { version = "0.30.12", default-features = false, features = ["x11", "rwh_06"] }
+wgpu = { version = "26.0.1", default-features = false, features = ["wgsl"] }
 gru-misc = { path = "../gru-misc", features = ["math"] }
 gru-ui = { path = "../gru-ui", optional = true }
-rodio = { version = "0.20.1", default-features = false, features = ["wasm-bindgen", "vorbis"], optional = true }
+rodio = { version = "0.21.1", default-features = false, features = ["wasm-bindgen", "vorbis", "playback"], optional = true }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 simple_logger = "5.0.0"
 pollster = "0.4.0"
-ahash = { version = "0.8.11", default-features = false, features = ["no-rng", "std", "serde"], optional = true }
+ahash = { version = "0.8.12", default-features = false, features = ["no-rng", "std", "serde"], optional = true }
 bincode = { version = "2.0.1", features = ["std", "serde"], optional = true }
 flume = { version = "0.11.1", default-features = false, optional = true }
 

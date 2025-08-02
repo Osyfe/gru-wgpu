@@ -1,5 +1,5 @@
 - gloo-worker + task_simple / wasm_thread
-- wgpu utils
+- wgpu utils (especially buffer abstraction)
 - resource parsing & loading
 x file loading
 x gloo-storage
