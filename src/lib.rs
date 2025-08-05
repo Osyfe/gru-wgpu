@@ -224,7 +224,7 @@ pub fn run<T: App>(init: T::Init)
     basics::init_logging();
     
     #[cfg(target_os = "linux")]
-    let mut event_loop =
+    let event_loop =
     {
         use winit::platform::x11::EventLoopBuilderExtX11;
         EventLoop::with_user_event().with_x11().build().unwrap()
