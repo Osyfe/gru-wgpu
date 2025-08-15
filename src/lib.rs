@@ -47,8 +47,10 @@ pub type Result<T> = std::result::Result<T, Error>;
 pub trait App: Sized + 'static
 {
     const BACKENDS: wgpu::Backends;
+    const FEATURES: wgpu::Features;
+    const LIMITS: wgpu::Limits;
     #[cfg(feature = "ui")]
-    const DEPTH_FORMAT: Option<wgpu::TextureFormat>;
+    const UI_DEPTH_FORMAT: Option<wgpu::TextureFormat>;
     type Init;
     #[cfg(feature = "ui")]
     type UiEvent;
@@ -78,15 +80,15 @@ pub struct Context<T: App>
 
 impl<T: App> Context<T>
 {
-    async fn init(backends: wgpu::Backends, window: Window) -> Self
+    async fn init(backends: wgpu::Backends, features: wgpu::Features, limits: wgpu::Limits, window: Window) -> Self
     {
         let window = Arc::new(window);
-        let mut graphics = graphics::Graphics::init(backends, window.clone()).await.unwrap();
+        let mut graphics = graphics::Graphics::init(backends, features, limits, window.clone()).await.unwrap();
         let size = window.inner_size().into();
         graphics.configure(size);
         let input = input::Input::new();
         #[cfg(feature = "ui")]
-        let (ui, ui_render) = (T::ui(), ui_render::RenderData::new(&graphics, T::DEPTH_FORMAT));
+        let (ui, ui_render) = (T::ui(), ui_render::RenderData::new(&graphics, T::UI_DEPTH_FORMAT));
 
         window.set_visible(true);
         Self
@@ -146,7 +148,7 @@ impl<T: App> ApplicationHandler<Context<T>> for AppHandler<T>
             let proxy = self.event_loop_proxy.clone();
             let future = async move
             {
-                let ctx = Context::init(T::BACKENDS, window).await;
+                let ctx = Context::init(T::BACKENDS, T::FEATURES, T::LIMITS, window).await;
                 proxy.send_event(ctx).ok().unwrap();
             };
             #[cfg(not(target_arch = "wasm32"))]

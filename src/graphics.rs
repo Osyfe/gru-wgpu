@@ -17,7 +17,7 @@ pub struct Graphics
 
 impl Graphics
 {
-    pub(crate) async fn init(backends: wgpu::Backends, window: Arc<Window>) -> Result<Self>
+    pub(crate) async fn init(backends: wgpu::Backends, features: wgpu::Features, limits: wgpu::Limits, window: Arc<Window>) -> Result<Self>
     {
         let instance_descr = wgpu::InstanceDescriptor
         {
@@ -74,8 +74,8 @@ impl Graphics
         let device_descr = wgpu::DeviceDescriptor
         {
             label: None,
-            required_features: wgpu::Features::empty(),
-            required_limits: wgpu::Limits::downlevel_webgl2_defaults(),
+            required_features: features,
+            required_limits: limits,
             memory_hints: wgpu::MemoryHints::Performance,
             trace: wgpu::Trace::Off,
         };
