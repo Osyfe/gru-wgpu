@@ -1,5 +1,3 @@
-#![feature(let_chains)]
-
 #[cfg(target_arch = "wasm32")]
 pub use wasm_bindgen;
 pub use winit;
@@ -216,8 +214,8 @@ impl<T: App> ApplicationHandler<Context<T>> for AppHandler<T>
         std::mem::swap(&mut self.app, &mut app);
         let AppState::App(app) = app else { unreachable!() };
         let init = app.deinit(&mut ctx);
-        std::mem::drop(ctx);
-        std::mem::drop(init);
+        drop(ctx);
+        drop(init);
     }
 }
 

@@ -38,6 +38,8 @@ impl Graphics
                 dx12: wgpu::Dx12BackendOptions
                 {
                     shader_compiler: wgpu::Dx12Compiler::StaticDxc,
+                    presentation_system: wgpu::Dx12SwapchainKind::DxgiFromHwnd,
+                    latency_waitable_object: wgpu::Dx12UseFrameLatencyWaitableObject::None, //TODO expose this maybe?
                 },
                 noop: wgpu::NoopBackendOptions
                 {
@@ -76,6 +78,7 @@ impl Graphics
             label: None,
             required_features: features,
             required_limits: limits,
+            experimental_features: wgpu::ExperimentalFeatures::disabled(),
             memory_hints: wgpu::MemoryHints::Performance,
             trace: wgpu::Trace::Off,
         };

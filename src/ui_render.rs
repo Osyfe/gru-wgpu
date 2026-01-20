@@ -95,7 +95,7 @@ impl RenderData
         {
             label: None,
             bind_group_layouts: &[&bind_group_layout],
-            push_constant_ranges: &[],
+            immediate_size: 0,
         };
         let pipeline_layout = device.create_pipeline_layout(&pipeline_layout_descr);
 
@@ -162,7 +162,7 @@ impl RenderData
                 targets: std::slice::from_ref(&color_target_state),
                 compilation_options: wgpu::PipelineCompilationOptions::default(),
             }),
-            multiview: None,
+            multiview_mask: None,
             cache: None,
         };
         let render_pipeline = device.create_render_pipeline(&render_pipeline_descr);
@@ -288,7 +288,7 @@ impl RenderData
             address_mode_w: wgpu::AddressMode::ClampToEdge,
             mag_filter: wgpu::FilterMode::Linear,
             min_filter: wgpu::FilterMode::Linear,
-            mipmap_filter: wgpu::FilterMode::Linear,
+            mipmap_filter: wgpu::MipmapFilterMode::Linear,
             lod_min_clamp: 0.0,
             lod_max_clamp: 32.0,
             compare: None,
