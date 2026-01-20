@@ -1,4 +1,6 @@
-use std::{fs, thread, pin::Pin, task::{self, Poll}, future::Future};
+#[cfg(not(target_arch = "wasm32"))]
+use std::{fs, thread};
+use std::{pin::Pin, task::{self, Poll}, future::Future};
 use crate::{Error, Result};
 
 pub struct File
