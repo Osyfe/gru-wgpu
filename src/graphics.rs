@@ -1,6 +1,6 @@
 use std::sync::Arc;
 use winit::window::Window;
-use crate::{Error, Result};
+use crate::{SurfaceError, Error, Result};
 
 pub struct Graphics
 {
@@ -34,20 +34,27 @@ impl Graphics
                 {
                     gles_minor_version: wgpu::Gles3MinorVersion::Automatic,
                     fence_behavior: wgpu::GlFenceBehavior::Normal,
+                    #[cfg(debug_assertions)]
+                    debug_fns: wgpu::GlDebugFns::Auto,
+                    #[cfg(not(debug_assertions))]
+                    debug_fns: wgpu::GlDebugFns::Disabled,
                 },
                 dx12: wgpu::Dx12BackendOptions
                 {
                     shader_compiler: wgpu::Dx12Compiler::StaticDxc,
                     presentation_system: wgpu::Dx12SwapchainKind::DxgiFromHwnd,
                     latency_waitable_object: wgpu::Dx12UseFrameLatencyWaitableObject::None, //TODO expose this maybe?
+                    force_shader_model: wgpu::ForceShaderModelToken::default(),
+                    agility_sdk: None,
                 },
                 noop: wgpu::NoopBackendOptions
                 {
                     enable: false,
                 },
             },
+            display: None,
         };
-        let instance = wgpu::Instance::new(&instance_descr);
+        let instance = wgpu::Instance::new(instance_descr);
 
         let surface = instance.create_surface(window)?;
         let surface_size = None;
@@ -120,13 +127,21 @@ impl Graphics
 
         let texture = match self.surface.get_current_texture()
         {
-            Ok(texture) => texture,
-            Err(wgpu::SurfaceError::Lost | wgpu::SurfaceError::Outdated) =>
+            wgpu::CurrentSurfaceTexture::Success(texture) => texture,
+            wgpu::CurrentSurfaceTexture::Suboptimal(_) =>
             {
                 self.configure(size);
                 return Ok(None);
             },
-            Err(err) => return Err(Error::Surface(err)),
+            wgpu::CurrentSurfaceTexture::Timeout => return Ok(None),
+            wgpu::CurrentSurfaceTexture::Occluded => return Ok(None),
+            wgpu::CurrentSurfaceTexture::Outdated =>
+            {
+                self.configure(size);
+                return Ok(None);
+            },
+            wgpu::CurrentSurfaceTexture::Lost => return Err(Error::Surface(SurfaceError::Lost)),
+            wgpu::CurrentSurfaceTexture::Validation => return Err(Error::Surface(SurfaceError::Validation)),
         };
         let view_descr = wgpu::TextureViewDescriptor
         {

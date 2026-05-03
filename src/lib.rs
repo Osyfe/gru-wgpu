@@ -21,6 +21,13 @@ pub mod file;
 use std::sync::Arc;
 use winit::{application::ApplicationHandler, event::{WindowEvent, StartCause}, event_loop::{EventLoop, ActiveEventLoop, EventLoopProxy}, window::Window};
 
+#[derive(Debug)]
+pub enum SurfaceError
+{
+    Lost,
+    Validation,
+}
+
 #[derive(thiserror::Error, Debug)]
 pub enum Error
 {
@@ -33,7 +40,7 @@ pub enum Error
     #[error("creatae surface")]
     CreateSurface(#[from] wgpu::CreateSurfaceError),
     #[error("surface")]
-    Surface(#[from] wgpu::SurfaceError),
+    Surface(SurfaceError),
     #[error("adapter")]
     Adapter(#[from] wgpu::RequestAdapterError),
     #[error("device")]
