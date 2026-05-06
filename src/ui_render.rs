@@ -316,7 +316,7 @@ impl RenderData
                 let (tex_coords, layer) = match vertex.tex_coords
                 {
                     Some((u, v, l)) => ((u, v).into(), l as i32),
-                    None => ((0.0, 0.0).into(), -1)
+                    None => ((0.0_f32, 0.0).into(), -1)
                 };
                 let vertex = Vertex { position, color, tex_coords, layer };
                 vertices.push(vertex);
