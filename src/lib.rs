@@ -78,7 +78,7 @@ pub struct Context<T: App>
     #[cfg(feature = "ui")]
     pub ui_render: ui_render::RenderData,
     #[cfg(feature = "audio")]
-    pub audio: Option<rodio::OutputStream>,
+    pub audio: Option<rodio::MixerDeviceSink>,
     #[cfg(feature = "storage")]
     pub storage: storage::Storage,
 }
@@ -115,7 +115,7 @@ impl<T: App> Context<T>
     }
 
     #[cfg(feature = "audio")]
-    pub fn audio(&self) -> Option<&rodio::OutputStream> { self.audio.as_ref() }
+    pub fn audio(&self) -> Option<&rodio::MixerDeviceSink> { self.audio.as_ref() }
 }
 
 enum AppState<T: App>
@@ -189,7 +189,7 @@ impl<T: App> ApplicationHandler<Context<T>> for AppHandler<T>
             #[cfg(feature = "audio")]
             if ctx.audio.is_none() && matches!(event, WindowEvent::MouseInput { .. })
             {
-                ctx.audio = Some(rodio::OutputStreamBuilder::open_default_stream().unwrap());
+                ctx.audio = Some(rodio::DeviceSinkBuilder::open_default_sink().unwrap());
             }
             match event
             {
