@@ -21,6 +21,13 @@ pub mod file;
 use std::sync::Arc;
 use winit::{application::ApplicationHandler, event::{WindowEvent, StartCause}, event_loop::{EventLoop, ActiveEventLoop, EventLoopProxy}, window::Window};
 
+#[derive(Debug)]
+pub enum SurfaceError
+{
+    Lost,
+    Validation,
+}
+
 #[derive(thiserror::Error, Debug)]
 pub enum Error
 {
@@ -33,7 +40,7 @@ pub enum Error
     #[error("creatae surface")]
     CreateSurface(#[from] wgpu::CreateSurfaceError),
     #[error("surface")]
-    Surface(#[from] wgpu::SurfaceError),
+    Surface(SurfaceError),
     #[error("adapter")]
     Adapter(#[from] wgpu::RequestAdapterError),
     #[error("device")]
@@ -71,7 +78,7 @@ pub struct Context<T: App>
     #[cfg(feature = "ui")]
     pub ui_render: ui_render::RenderData,
     #[cfg(feature = "audio")]
-    pub audio: Option<rodio::OutputStream>,
+    pub audio: Option<rodio::MixerDeviceSink>,
     #[cfg(feature = "storage")]
     pub storage: storage::Storage,
 }
@@ -108,7 +115,7 @@ impl<T: App> Context<T>
     }
 
     #[cfg(feature = "audio")]
-    pub fn audio(&self) -> Option<&rodio::OutputStream> { self.audio.as_ref() }
+    pub fn audio(&self) -> Option<&rodio::MixerDeviceSink> { self.audio.as_ref() }
 }
 
 enum AppState<T: App>
@@ -182,7 +189,9 @@ impl<T: App> ApplicationHandler<Context<T>> for AppHandler<T>
             #[cfg(feature = "audio")]
             if ctx.audio.is_none() && matches!(event, WindowEvent::MouseInput { .. })
             {
-                ctx.audio = Some(rodio::OutputStreamBuilder::open_default_stream().unwrap());
+                let mut sink = rodio::DeviceSinkBuilder::open_default_sink().unwrap();
+                sink.log_on_drop(false);
+                ctx.audio = Some(sink);
             }
             match event
             {

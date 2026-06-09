@@ -36,8 +36,8 @@ impl RenderData
         wgpu::DepthStencilState
         {
             format,
-            depth_write_enabled: true,
-            depth_compare: wgpu::CompareFunction::LessEqual,
+            depth_write_enabled: Some(false),
+            depth_compare: None,
             stencil: wgpu::StencilState
             {
                 front: wgpu::StencilFaceState
@@ -94,7 +94,7 @@ impl RenderData
         let pipeline_layout_descr = wgpu::PipelineLayoutDescriptor
         {
             label: None,
-            bind_group_layouts: &[&bind_group_layout],
+            bind_group_layouts: &[Some(&bind_group_layout)],
             immediate_size: 0,
         };
         let pipeline_layout = device.create_pipeline_layout(&pipeline_layout_descr);
@@ -316,7 +316,7 @@ impl RenderData
                 let (tex_coords, layer) = match vertex.tex_coords
                 {
                     Some((u, v, l)) => ((u, v).into(), l as i32),
-                    None => ((0.0, 0.0).into(), -1)
+                    None => ((0.0_f32, 0.0).into(), -1)
                 };
                 let vertex = Vertex { position, color, tex_coords, layer };
                 vertices.push(vertex);

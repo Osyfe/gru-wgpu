@@ -8,7 +8,7 @@ webgpu = ["wgpu/webgpu"]
 vulkan = ["wgpu/vulkan"]
 dx12 = ["wgpu/dx12", "wgpu/static-dxc"] #broken currently?
 metal = ["wgpu/metal"]
-gles = ["wgpu/gles"] #broken currently?
+gles = ["wgpu/gles"]
 webgl = ["wgpu/webgl"]
 
 all = ["ui", "audio", "storage", "file"]
@@ -19,14 +19,14 @@ file = ["dep:flume", "web-sys/XmlHttpRequest", "web-sys/XmlHttpRequestResponseTy
 
 [dependencies]
 thiserror = "2.0.18"
-winit = { version = "0.30.12", default-features = false, features = ["x11", "rwh_06"] }
-wgpu = { version = "28.0.0", default-features = false, features = ["wgsl"] }
+winit = { version = "0.30.13", default-features = false, features = ["x11", "rwh_06"] }
+wgpu = { version = "29.0.3", default-features = false, features = ["wgsl"] }
 gru-misc = { git = "https://github.com/Osyfe/gru-misc.git", branch = "release", features = ["math"] }
 gru-ui = { git = "https://github.com/Osyfe/gru-ui.git", branch = "release", optional = true }
-rodio = { version = "0.21.1", default-features = false, features = ["wasm-bindgen", "vorbis", "playback"], optional = true }
+rodio = { version = "0.22.2", default-features = false, features = ["wasm-bindgen", "vorbis", "playback"], optional = true }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-simple_logger = "5.1.0"
+simple_logger = "5.2.0"
 pollster = "0.4.0"
 ahash = { version = "0.8.12", default-features = false, features = ["no-rng", "std", "serde"], optional = true }
 bincode = { version = "1.3.3", optional = true } #version 1.3.3 considered complete after drama and development stop
@@ -35,7 +35,7 @@ flume = { version = "0.12.0", default-features = false, optional = true }
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 console_error_panic_hook = "0.1.7"
 console_log = "1.0.0"
-wasm-bindgen = "0.2.108"
-wasm-bindgen-futures = "0.4.58"
-web-sys = { version = "0.3.85", features = ["Window", "Document", "Element", "HtmlCanvasElement", "Performance"] }
-js-sys = { version = "0.3.85", optional = true }
+wasm-bindgen = "0.2.121"
+wasm-bindgen-futures = "0.4.71"
+web-sys = { version = "0.3.98", features = ["Window", "Document", "Element", "HtmlCanvasElement", "Performance"] }
+js-sys = { version = "0.3.98", optional = true }
