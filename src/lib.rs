@@ -189,7 +189,9 @@ impl<T: App> ApplicationHandler<Context<T>> for AppHandler<T>
             #[cfg(feature = "audio")]
             if ctx.audio.is_none() && matches!(event, WindowEvent::MouseInput { .. })
             {
-                ctx.audio = Some(rodio::DeviceSinkBuilder::open_default_sink().unwrap());
+                let mut sink = rodio::DeviceSinkBuilder::open_default_sink().unwrap();
+                sink.log_on_drop(false);
+                ctx.audio = Some(sink);
             }
             match event
             {
