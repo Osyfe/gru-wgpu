@@ -20,7 +20,7 @@ file = ["dep:flume", "web-sys/XmlHttpRequest", "web-sys/XmlHttpRequestResponseTy
 [dependencies]
 thiserror = "2.0.18"
 winit = { version = "0.30.13", default-features = false, features = ["x11", "rwh_06"] }
-wgpu = { version = "29.0.3", default-features = false, features = ["wgsl"] }
+wgpu = { version = "29.0.3", default-features = false, features = ["std", "wgsl"] }
 gru-misc = { path = "../gru-misc", features = ["math"] }
 gru-ui = { path = "../gru-ui", optional = true }
 rodio = { version = "0.22.2", default-features = false, features = ["wasm-bindgen", "vorbis", "playback"], optional = true }

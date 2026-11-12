@@ -171,6 +171,7 @@ impl<T: App> ApplicationHandler<Context<T>> for AppHandler<T>
         let init = init.take().unwrap();
         let app = T::init(init, &mut ctx);
         self.app = AppState::App(app);
+        ctx.window.request_redraw(); //WebGPU can get stuck due to async...
         self.ctx = Some(ctx);
     }
 
